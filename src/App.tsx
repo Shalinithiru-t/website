@@ -8,6 +8,7 @@ import ApplicationDetail from "@/pages/ApplicationDetail"
 import Projects from "@/pages/Projects"
 import ProjectDetail from "@/pages/ProjectDetail"
 import Resources from "@/pages/Resources"
+import ResourceDetail from "@/pages/ResourceDetail"
 import About from "@/pages/About"
 import Contact from "@/pages/Contact"
 import Enquire from "@/pages/Enquire"
@@ -27,6 +28,7 @@ function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:slug" element={<ProjectDetail />} />
           <Route path="/resources" element={<Resources />} />
+          <Route path="/resources/:slug" element={<ResourceDetail />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/enquire" element={<Enquire />} />

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams, Link, Navigate } from "react-router-dom"
 import {
   Check,
@@ -43,7 +43,8 @@ import ProjectCard from "@/components/shared/ProjectCard"
 import EnquiryDialog from "@/components/shared/EnquiryDialog"
 import Configurator from "@/components/product/Configurator"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
-import { getProductBySlug, products } from "@/data/products"
+import { fetchProductBySlug, fetchProducts } from "@/lib/productsApi"
+import type { Product } from "@/types"
 import { projects } from "@/data/projects"
 import { applications } from "@/data/applications"
 
@@ -75,20 +76,54 @@ const anchors = [
 
 export default function ProductDetail() {
   const { slug } = useParams()
-  const product = getProductBySlug(slug || "")
+  const [product, setProduct] = useState<Product | null>(null)
+  const [allProducts, setAllProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
   const [activeImage, setActiveImage] = useState(0)
   const [dialogOpen, setDialogOpen] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setNotFound(false)
+    setActiveImage(0)
+
+    Promise.all([fetchProductBySlug(slug || ""), fetchProducts()]).then(([p, list]) => {
+      if (cancelled) return
+      if (!p) {
+        setNotFound(true)
+        setProduct(null)
+      } else {
+        setProduct(p)
+        setAllProducts(list)
+      }
+      setLoading(false)
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [slug])
 
   useDocumentMeta(
     product ? product.name : "Product Not Found",
     product ? product.shortDescription : "The requested product could not be found."
   )
 
-  if (!product) return <Navigate to="/products" replace />
+  if (loading) {
+    return (
+      <div className="container-1280 px-4 py-24 text-center text-steel sm:px-6 lg:px-10">
+        Loading product…
+      </div>
+    )
+  }
+
+  if (notFound || !product) return <Navigate to="/products" replace />
 
   const relatedProducts = product.relatedProductSlugs
-    .map((s) => products.find((p) => p.slug === s))
-    .filter(Boolean) as typeof products
+    .map((s) => allProducts.find((p) => p.slug === s))
+    .filter(Boolean) as Product[]
   const relatedProjects = projects.filter((p) => product.applicationTags.some((tag) => p.application.includes(tag.split(" ")[0]))).slice(0, 3)
   const galleryProjects = relatedProjects.length > 0 ? relatedProjects : projects.slice(0, 3)
   const relatedApplications = applications.filter((a) => product.applicationTags.includes(a.name)).slice(0, 4)

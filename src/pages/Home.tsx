@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import { useEffect, useState } from "react"
 import { ArrowRight, ShieldCheck, Truck, Award, Wrench } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import SectionHeading from "@/components/shared/SectionHeading"
@@ -9,10 +10,12 @@ import FadeUp from "@/components/shared/FadeUp"
 import JsonLd from "@/components/shared/JsonLd"
 import EnquiryForm from "@/components/shared/EnquiryForm"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
-import { products } from "@/data/products"
+import { fetchProducts } from "@/lib/productsApi"
+import { fetchResources } from "@/lib/blogsApi"
+import type { Product } from "@/types"
+import type { Resource } from "@/types"
 import { applications } from "@/data/applications"
 import { projects } from "@/data/projects"
-import { resources } from "@/data/resources"
 import { stats, siteInfo } from "@/data/site"
 
 const benefitIcons = { ShieldCheck, Truck, Award, Wrench }
@@ -29,6 +32,22 @@ export default function Home() {
     "PUF Panels, Roofing & PEB Systems",
     "India's insulated building solutions partner. MountRoof supplies PUF sandwich panels, roofing, wall systems, cold-room panels and PEB structures nationwide."
   )
+
+  const [products, setProducts] = useState<Product[]>([])
+  const [resources, setResources] = useState<Resource[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([fetchProducts(), fetchResources()]).then(([productList, resourceList]) => {
+      if (!cancelled) {
+        setProducts(productList)
+        setResources(resourceList)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   return (
     <div>
@@ -229,7 +248,7 @@ export default function Home() {
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {resources.slice(0, 3).map((r, i) => (
             <FadeUp key={r.slug} delay={i * 80}>
-              <Link to="/resources" className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border-grey bg-white transition hover:shadow-lg">
+              <Link to={`/resources/${r.slug}`} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border-grey bg-white transition hover:shadow-lg">
                 <div className="aspect-[16/10] overflow-hidden">
                   <img src={r.image} alt={r.title} loading="lazy" className="size-full object-cover transition duration-500 group-hover:scale-105" />
                 </div>

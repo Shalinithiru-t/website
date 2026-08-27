@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import Breadcrumb from "@/components/shared/Breadcrumb"
@@ -6,14 +7,37 @@ import ApplicationCard from "@/components/shared/ApplicationCard"
 import ProjectCard from "@/components/shared/ProjectCard"
 import FadeUp from "@/components/shared/FadeUp"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
-import { applications } from "@/data/applications"
-import { projects } from "@/data/projects"
+import { fetchApplications } from "@/lib/applicationsApi"
+import { fetchProjects } from "@/lib/projectsApi"
+import type { Application } from "@/types"
+import type { Project } from "@/types"
 
 export default function Applications() {
   useDocumentMeta(
     "Applications",
     "MountRoof insulated panel solutions for warehouses, cold storage, food processing, pharma cleanrooms and industrial facilities."
   )
+
+  const [applications, setApplications] = useState<Application[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showAll, setShowAll] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([fetchApplications(), fetchProjects()]).then(([apps, projectList]) => {
+      if (!cancelled) {
+        setApplications(apps)
+        setProjects(projectList)
+        setLoading(false)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const visible = showAll ? applications : applications.slice(0, 6)
 
   return (
     <div>
@@ -34,13 +58,28 @@ export default function Applications() {
 
       <div className="container-1280 px-4 py-20 sm:px-6 lg:px-10">
         <SectionHeading eyebrow="By Environment" title="Choose Your Application" />
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {applications.map((a, i) => (
-            <FadeUp key={a.slug} delay={i * 70}>
-              <ApplicationCard application={a} />
-            </FadeUp>
-          ))}
-        </div>
+        {loading && <p className="mt-10 text-center text-steel">Loading applications…</p>}
+        {!loading && (
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((a, i) => (
+              <FadeUp key={a.slug} delay={i * 70}>
+                <ApplicationCard application={a} />
+              </FadeUp>
+            ))}
+          </div>
+        )}
+        {!loading && applications.length > 6 && !showAll && (
+          <div className="mt-10 text-center">
+            <Button
+              type="button"
+              variant="outline"
+              className="border-navy text-navy hover:bg-navy hover:text-white"
+              onClick={() => setShowAll(true)}
+            >
+              Read More
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="bg-surface py-20">

@@ -3,7 +3,8 @@ import Breadcrumb from "@/components/shared/Breadcrumb"
 import FadeUp from "@/components/shared/FadeUp"
 import JsonLd from "@/components/shared/JsonLd"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
-import { stats, siteInfo } from "@/data/site"
+import { stats } from "@/data/site"
+import { useSiteInfo } from "@/context/SiteInfoContext"
 
 const values = [
   { title: "Engineering First", description: "Every panel is specified against real structural and thermal requirements, not just catalogue defaults.", icon: ShieldCheck },
@@ -26,6 +27,7 @@ export default function About() {
     "About Us",
     "MountRoof (Mount Roofing & Structures Pvt. Ltd.) is India's insulated building solutions partner, manufacturing PUF panels, roofing and PEB systems."
   )
+  const siteInfo = useSiteInfo()
 
   return (
     <div>

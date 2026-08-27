@@ -2,13 +2,19 @@ export const siteInfo = {
   legalName: "Mount Roofing & Structures Pvt. Ltd.",
   brandName: "MountRoof",
   tagline: "India's Insulated Building Solutions Partner",
-  phone: "+91 96060 83685",
-  phoneHref: "tel:+919606083685",
-  whatsappHref: "https://wa.me/919606083685",
-  email: "info@mountroof.com",
-  salesEmail: "sales@mountroof.com",
-  address: "Plot 42, Peenya Industrial Area, Bengaluru, Karnataka, India - 560058",
-  addressShort: "Bengaluru, Karnataka, India",
+  phone: "+91 90356 62840",
+  phoneDigits: "919035662840",
+  phoneHref: "tel:+919035662840",
+  whatsappPhone: "+91 90356 62840",
+  whatsappDigits: "919035662840",
+  whatsappHref: "https://wa.me/919035662840",
+  email: "Krishnafabtech@gmail.com",
+  salesEmail: "Krishnafabtech@gmail.com",
+  address: "42, Kapila Nagar, Doddanna Industrial Estate, Peenya, Bengaluru, Karnataka 560058",
+  addressShort: "Peenya, Bengaluru, Karnataka",
+  /** Google Maps embed URL — update when office location changes */
+  mapEmbedUrl:
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.468001270824!2d77.51431557512342!3d13.00584208731264!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae3daab10e333f%3A0x6dfea01cc1a84c44!2s42%2C%20Kapila%20Nagar%2C%20Doddanna%20Industrial%20estste%2C%20Peenya%2C%20Bengaluru%2C%20Karnataka%20560058!5e0!3m2!1sen!2sin!4v1787771722802!5m2!1sen!2sin",
   year: 2026,
 }
 

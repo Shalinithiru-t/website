@@ -10,7 +10,7 @@ export function PrivacyPolicy() {
       <div className="mt-6 max-w-3xl space-y-4 text-steel">
         <p>Mount Roofing & Structures Pvt. Ltd. ("MountRoof") collects contact and project information you submit through our enquiry forms solely to respond to your project requirements and provide relevant quotations.</p>
         <p>We do not sell or share your personal information with third parties outside of our direct project fulfilment and logistics partners, and only to the extent necessary to service your enquiry.</p>
-        <p>For any questions about how your data is used, please contact us at info@mountroof.com.</p>
+        <p>For any questions about how your data is used, please contact us at Krishnafabtech@gmail.com.</p>
       </div>
     </div>
   )
@@ -25,7 +25,7 @@ export function TermsAndConditions() {
       <div className="mt-6 max-w-3xl space-y-4 text-steel">
         <p>All product specifications, pricing and lead times provided through this website are indicative and subject to confirmation by MountRoof's technical sales team prior to order confirmation.</p>
         <p>Final panel thickness, core material and surface finish for any project are confirmed in writing following a technical review of your specific requirements.</p>
-        <p>Use of this website constitutes acceptance of these terms. For any queries, please contact sales@mountroof.com.</p>
+        <p>Use of this website constitutes acceptance of these terms. For any queries, please contact Krishnafabtech@gmail.com.</p>
       </div>
     </div>
   )

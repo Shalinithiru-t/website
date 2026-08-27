@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState, type MouseEvent } from "react"
 import { useParams, Link, Navigate } from "react-router-dom"
 import {
   Check,
@@ -27,6 +27,7 @@ import {
   MoveHorizontal,
   Flame,
   Plus,
+  MessageCircle,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -43,8 +44,10 @@ import ProjectCard from "@/components/shared/ProjectCard"
 import EnquiryDialog from "@/components/shared/EnquiryDialog"
 import Configurator from "@/components/product/Configurator"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
-import { getProductBySlug, products } from "@/data/products"
-import { projects } from "@/data/projects"
+import { fetchProductBySlug, fetchProducts } from "@/lib/productsApi"
+import { fetchProjects } from "@/lib/projectsApi"
+import { buildWhatsAppUrl, logAndBuildWhatsAppUrl, productWhatsAppMessage } from "@/lib/whatsapp"
+import type { Product, Project } from "@/types"
 import { applications } from "@/data/applications"
 
 const iconMap = {
@@ -75,24 +78,80 @@ const anchors = [
 
 export default function ProductDetail() {
   const { slug } = useParams()
-  const product = getProductBySlug(slug || "")
+  const [product, setProduct] = useState<Product | null>(null)
+  const [allProducts, setAllProducts] = useState<Product[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
   const [activeImage, setActiveImage] = useState(0)
   const [dialogOpen, setDialogOpen] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setNotFound(false)
+    setActiveImage(0)
+
+    Promise.all([fetchProductBySlug(slug || ""), fetchProducts(), fetchProjects()]).then(
+      ([p, list, projectList]) => {
+        if (cancelled) return
+        if (!p) {
+          setNotFound(true)
+          setProduct(null)
+        } else {
+          setProduct(p)
+          setAllProducts(list)
+          setProjects(projectList)
+        }
+        setLoading(false)
+      }
+    )
+
+    return () => {
+      cancelled = true
+    }
+  }, [slug])
 
   useDocumentMeta(
     product ? product.name : "Product Not Found",
     product ? product.shortDescription : "The requested product could not be found."
   )
 
-  if (!product) return <Navigate to="/products" replace />
+  if (loading) {
+    return (
+      <div className="container-1280 px-4 py-24 text-center text-steel sm:px-6 lg:px-10">
+        Loading product…
+      </div>
+    )
+  }
+
+  if (notFound || !product) return <Navigate to="/products" replace />
 
   const relatedProducts = product.relatedProductSlugs
-    .map((s) => products.find((p) => p.slug === s))
-    .filter(Boolean) as typeof products
+    .map((s) => allProducts.find((p) => p.slug === s))
+    .filter(Boolean) as Product[]
   const relatedProjects = projects.filter((p) => product.applicationTags.some((tag) => p.application.includes(tag.split(" ")[0]))).slice(0, 3)
   const galleryProjects = relatedProjects.length > 0 ? relatedProjects : projects.slice(0, 3)
   const relatedApplications = applications.filter((a) => product.applicationTags.includes(a.name)).slice(0, 4)
   const gallery = product.images.length > 0 ? [...product.images, ...product.images].slice(0, 6) : product.images
+  const productUrl = typeof window !== "undefined" ? window.location.href : `https://www.mountroof.com/products/${product.slug}`
+  const bookNowMessage = productWhatsAppMessage(product.name, productUrl)
+  const bookNowHref = buildWhatsAppUrl(bookNowMessage)
+
+  async function openProductWhatsApp(e: MouseEvent<HTMLAnchorElement>) {
+    e.preventDefault()
+    const href = await logAndBuildWhatsAppUrl(
+      {
+        source: "product",
+        product: product.name,
+        productSlug: product.slug,
+        productUrl,
+        message: bookNowMessage,
+      },
+      bookNowMessage
+    )
+    window.open(href, "_blank", "noopener,noreferrer")
+  }
 
   function nextImage() {
     setActiveImage((i) => (i + 1) % gallery.length)
@@ -214,6 +273,12 @@ export default function ProductDetail() {
           </div>
 
           <div className="mt-8 flex flex-wrap gap-4">
+            <Button asChild className="bg-[#25D366] text-white hover:bg-[#1ebe57]">
+              <a href={bookNowHref} target="_blank" rel="noreferrer" onClick={(e) => void openProductWhatsApp(e)}>
+                <MessageCircle className="mr-2 size-4" aria-hidden="true" />
+                Book Now on WhatsApp
+              </a>
+            </Button>
             <Button onClick={() => setDialogOpen(true)} className="bg-accent hover:bg-[#D94716]">
               Request a Quote <ChevronRight className="ml-1 size-4" aria-hidden="true" />
             </Button>
@@ -238,6 +303,12 @@ export default function ProductDetail() {
               )
             })}
           </nav>
+          <Button asChild size="sm" className="hidden shrink-0 bg-[#25D366] text-white hover:bg-[#1ebe57] sm:inline-flex">
+            <a href={bookNowHref} target="_blank" rel="noreferrer" onClick={(e) => void openProductWhatsApp(e)}>
+              <MessageCircle className="mr-1.5 size-4" aria-hidden="true" />
+              Book Now
+            </a>
+          </Button>
           <Button onClick={() => setDialogOpen(true)} size="sm" className="hidden shrink-0 bg-accent hover:bg-[#D94716] sm:inline-flex">
             Request a Quote
           </Button>
@@ -409,6 +480,12 @@ export default function ProductDetail() {
             </div>
           </div>
           <div className="flex shrink-0 flex-wrap justify-center gap-4">
+            <Button asChild className="bg-[#25D366] text-white hover:bg-[#1ebe57]">
+              <a href={bookNowHref} target="_blank" rel="noreferrer" onClick={(e) => void openProductWhatsApp(e)}>
+                <MessageCircle className="mr-2 size-4" aria-hidden="true" />
+                Book Now on WhatsApp
+              </a>
+            </Button>
             <Button onClick={() => setDialogOpen(true)} className="bg-accent hover:bg-[#D94716]">Request a Quote</Button>
             <Button asChild variant="outline" className="border-white/40 bg-transparent text-white hover:bg-white hover:text-navy">
               <Link to="/contact">Talk to an Expert</Link>

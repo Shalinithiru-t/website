@@ -1,29 +1,35 @@
 import type { Enquiry } from "@/types"
 
-const STORAGE_KEY = "mountroof_enquiries"
+export type EnquirySubmitInput = Omit<Enquiry, "id" | "createdAt"> & {
+  projectType: string
+  source?: "home" | "enquire" | "contact" | "product" | "configurator" | "other"
+  productSlug?: string
+  productUrl?: string
+}
 
-export function submitEnquiry(data: Omit<Enquiry, "id" | "createdAt">): Promise<Enquiry> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const enquiry: Enquiry = {
-        ...data,
-        id: `MR-${Date.now().toString(36).toUpperCase()}`,
-        createdAt: new Date().toISOString(),
-      }
-      if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
-        console.log("MountRoof enquiry submitted:", enquiry)
-      }
-      try {
-        const existingRaw = localStorage.getItem(STORAGE_KEY)
-        const existing: Enquiry[] = existingRaw ? JSON.parse(existingRaw) : []
-        existing.push(enquiry)
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(existing))
-      } catch {
-        // localStorage unavailable - fail silently, enquiry object still returned
-      }
-      resolve(enquiry)
-    }, 800)
+function apiBase(): string {
+  const envUrl = import.meta.env.VITE_API_URL as string | undefined
+  return envUrl?.replace(/\/$/, "") || ""
+}
+
+export function submitEnquiry(data: EnquirySubmitInput): Promise<Enquiry> {
+  return fetch(`${apiBase()}/api/enquiries`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...data,
+      consent: true,
+    }),
+  }).then(async (res) => {
+    const body = (await res.json()) as {
+      success?: boolean
+      message?: string
+      enquiry?: Enquiry
+    }
+    if (!res.ok || !body.enquiry) {
+      throw new Error(body.message || `Enquiry submission failed (${res.status})`)
+    }
+    return body.enquiry
   })
 }
 

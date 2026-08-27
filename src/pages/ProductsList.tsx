@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -7,7 +7,8 @@ import Breadcrumb from "@/components/shared/Breadcrumb"
 import ProductCard from "@/components/shared/ProductCard"
 import FadeUp from "@/components/shared/FadeUp"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
-import { products } from "@/data/products"
+import { fetchProducts } from "@/lib/productsApi"
+import type { Product } from "@/types"
 
 const filters = ["All", "Roofing", "Wall Systems", "Cold Storage", "Specialized"]
 
@@ -16,16 +17,41 @@ export default function ProductsList() {
     "Product Range",
     "Browse MountRoof's full range of PUF sandwich panels: roofing, wall systems, cold room panels and specialized architectural panels."
   )
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("All")
   const [query, setQuery] = useState("")
+  const [showAll, setShowAll] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchProducts().then((list) => {
+      if (!cancelled) {
+        setProducts(list)
+        setLoading(false)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    setShowAll(false)
+  }, [filter, query])
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
       const matchesFilter = filter === "All" || p.categoryFilter === filter
-      const matchesQuery = query.trim() === "" || p.name.toLowerCase().includes(query.toLowerCase()) || p.shortDescription.toLowerCase().includes(query.toLowerCase())
+      const matchesQuery =
+        query.trim() === "" ||
+        p.name.toLowerCase().includes(query.toLowerCase()) ||
+        p.shortDescription.toLowerCase().includes(query.toLowerCase())
       return matchesFilter && matchesQuery
     })
-  }, [filter, query])
+  }, [products, filter, query])
+
+  const visible = showAll ? filtered : filtered.slice(0, 6)
 
   return (
     <div>
@@ -68,20 +94,38 @@ export default function ProductsList() {
           </div>
         </div>
 
-        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p, i) => (
-            <FadeUp key={p.slug} delay={i * 60}>
-              <ProductCard product={p} />
-            </FadeUp>
-          ))}
-        </div>
-        {filtered.length === 0 && (
+        {loading && <p className="mt-10 text-center text-steel">Loading products…</p>}
+
+        {!loading && (
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {visible.map((p, i) => (
+              <FadeUp key={p.slug} delay={i * 60}>
+                <ProductCard product={p} />
+              </FadeUp>
+            ))}
+          </div>
+        )}
+        {!loading && filtered.length === 0 && (
           <p className="mt-10 text-center text-steel">No products match your search. Try a different keyword or filter.</p>
+        )}
+        {!loading && filtered.length > 6 && !showAll && (
+          <div className="mt-10 text-center">
+            <Button
+              type="button"
+              variant="outline"
+              className="border-navy text-navy hover:bg-navy hover:text-white"
+              onClick={() => setShowAll(true)}
+            >
+              Read More
+            </Button>
+          </div>
         )}
 
         <div className="mt-16 flex flex-col items-center gap-4 rounded-2xl border border-border-grey bg-surface p-8 text-center">
           <h2 className="text-xl font-semibold text-charcoal">Not sure which panel is right for your project?</h2>
-          <p className="max-w-lg text-steel">Talk to our technical sales team for a side-by-side comparison of specifications, thermal performance and pricing across our panel range.</p>
+          <p className="max-w-lg text-steel">
+            Talk to our technical sales team for a side-by-side comparison of specifications, thermal performance and pricing across our panel range.
+          </p>
           <Button asChild className="bg-accent hover:bg-[#D94716]">
             <Link to="/contact">Compare Products with an Expert</Link>
           </Button>

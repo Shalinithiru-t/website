@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react"
+import { useState, type FormEvent, type MouseEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/select"
 import { Loader2, MessageCircle, ArrowRight } from "lucide-react"
 import { submitEnquiry, phoneRegex, emailRegex } from "@/lib/enquiry"
-import { siteInfo, projectTypes, deliveryTimelines } from "@/data/site"
+import { buildWhatsAppUrl, enquiryWhatsAppMessage, logAndBuildWhatsAppUrl } from "@/lib/whatsapp"
+import { projectTypes, deliveryTimelines } from "@/data/site"
 import type { Enquiry } from "@/types"
 import { Link } from "react-router-dom"
 
@@ -53,6 +54,7 @@ export default function EnquiryForm({ prefill, productLocked, onSuccess, compact
   const [message, setMessage] = useState("")
   const [consent, setConsent] = useState(false)
   const [errors, setErrors] = useState<Errors>({})
+  const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState<Enquiry | null>(null)
 
@@ -73,32 +75,62 @@ export default function EnquiryForm({ prefill, productLocked, onSuccess, compact
     setErrors(next)
     if (Object.keys(next).length > 0) return
     setSubmitting(true)
-    const enquiry = await submitEnquiry({
-      product: prefill?.product || "General Enquiry",
-      colour,
-      thickness,
-      length,
-      area,
-      quantity: prefill?.quantity || "",
-      surfaceMaterial: prefill?.surfaceMaterial || "",
-      application: prefill?.application || "",
-      projectLocation,
-      name,
-      phone,
-      email,
-      company,
-      deliveryTimeline,
-      message,
-      consent,
-    })
-    setSubmitting(false)
-    setSuccess(enquiry)
-    onSuccess?.(enquiry)
+    setSubmitError("")
+    try {
+      const enquiry = await submitEnquiry({
+        product: prefill?.product || "General Enquiry",
+        colour,
+        thickness,
+        length,
+        area,
+        quantity: prefill?.quantity || "",
+        surfaceMaterial: prefill?.surfaceMaterial || "",
+        application: prefill?.application || "",
+        projectLocation,
+        projectType,
+        name,
+        phone,
+        email,
+        company,
+        deliveryTimeline,
+        message,
+        consent,
+        source: prefill?.product ? "product" : "enquire",
+      })
+      setSuccess(enquiry)
+      onSuccess?.(enquiry)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Submission failed. Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const isInvalid = !name.trim() || !phoneRegex.test(phone.trim()) || !projectLocation.trim() || !projectType || !consent
 
   if (success) {
+    const successMessage = enquiryWhatsAppMessage({
+      referenceId: success.id,
+      product: success.product,
+      name: success.name,
+      projectLocation: success.projectLocation,
+    })
+    const successHref = buildWhatsAppUrl(successMessage)
+
+    async function openEnquiryWhatsApp(e: MouseEvent<HTMLAnchorElement>) {
+      e.preventDefault()
+      const href = await logAndBuildWhatsAppUrl(
+        {
+          source: "enquiry_success",
+          product: success.product,
+          enquiryReferenceId: success.id,
+          message: successMessage,
+        },
+        successMessage
+      )
+      window.open(href, "_blank", "noopener,noreferrer")
+    }
+
     return (
       <div className="py-8 text-center" role="status" aria-live="polite">
         <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-success/10 text-success">
@@ -110,8 +142,8 @@ export default function EnquiryForm({ prefill, productLocked, onSuccess, compact
         </p>
         <p className="mt-1 text-sm text-steel">Reference ID: {success.id}</p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Button asChild className="bg-accent hover:bg-[#D94716]">
-            <a href={siteInfo.whatsappHref} target="_blank" rel="noreferrer">
+          <Button asChild className="bg-[#25D366] text-white hover:bg-[#1ebe57]">
+            <a href={successHref} target="_blank" rel="noreferrer" onClick={(e) => void openEnquiryWhatsApp(e)}>
               <MessageCircle className="mr-2 size-4" aria-hidden="true" />
               Chat on WhatsApp
             </a>
@@ -229,6 +261,12 @@ export default function EnquiryForm({ prefill, productLocked, onSuccess, compact
           {errors.consent && <p role="alert" className="mt-1 text-sm text-destructive">{errors.consent}</p>}
         </div>
       </div>
+
+      {submitError && (
+        <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          {submitError}
+        </p>
+      )}
 
       <Button type="submit" disabled={isInvalid || submitting} className="w-full bg-accent hover:bg-[#D94716] disabled:opacity-50">
         {submitting ? (

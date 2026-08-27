@@ -27,16 +27,34 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-navy px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-navy">MountRoof Admin</h1>
-          <p className="mt-1 text-sm text-steel">Sign in to manage products, blogs and enquiries</p>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
+      <div className="absolute inset-0 bg-gradient-to-br from-navy via-navy-mid to-[#0a1622]" />
+      <div
+        className="absolute inset-0 opacity-30"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 20% 20%, rgba(232,93,42,0.35), transparent 40%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.08), transparent 35%)",
+        }}
+      />
+
+      <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-white shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+        <div className="border-b border-border-grey bg-surface px-8 py-6">
+          <div className="flex items-center gap-3">
+            <span className="flex size-11 items-center justify-center rounded-xl bg-navy text-lg font-extrabold text-white">
+              M
+            </span>
+            <div>
+              <p className="text-lg font-extrabold text-navy">MountRoof</p>
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-steel">Admin sign in</p>
+            </div>
+          </div>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={onSubmit} className="space-y-4 px-8 py-7">
+          <p className="text-sm text-steel">Manage products, applications, blogs, enquiries and site settings.</p>
+
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-charcoal">
+            <label htmlFor="email" className="block text-sm font-semibold text-charcoal">
               Email
             </label>
             <input
@@ -46,11 +64,11 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1.5 w-full rounded-lg border border-border-grey px-3 py-2.5 text-sm outline-none focus:border-navy focus:ring-2 focus:ring-navy/20"
+              className="admin-input mt-1.5"
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-charcoal">
+            <label htmlFor="password" className="block text-sm font-semibold text-charcoal">
               Password
             </label>
             <input
@@ -60,7 +78,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1.5 w-full rounded-lg border border-border-grey px-3 py-2.5 text-sm outline-none focus:border-navy focus:ring-2 focus:ring-navy/20"
+              className="admin-input mt-1.5"
             />
           </div>
 
@@ -70,18 +88,10 @@ export default function LoginPage() {
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#D94716] disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} className="admin-btn admin-btn-primary w-full py-3">
             {submitting ? "Signing in…" : "Sign in"}
           </button>
         </form>
-
-        <p className="mt-6 text-center text-xs text-steel">
-          Phase 0 seed: <code className="rounded bg-surface px-1">admin@mountroof.com</code>
-        </p>
       </div>
     </div>
   )

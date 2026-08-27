@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom"
 import { Globe, Share2, AtSign, Mail, Phone, MapPin } from "lucide-react"
-import { siteInfo, navProducts, navApplications, footerCompanyLinks } from "@/data/site"
+import { navProducts, navApplications, footerCompanyLinks } from "@/data/site"
+import { useSiteInfo } from "@/context/SiteInfoContext"
 
 export default function Footer() {
+  const siteInfo = useSiteInfo()
+
   return (
     <footer className="bg-charcoal text-white/80 pb-16 lg:pb-0">
       <div className="container-1440 grid gap-10 px-4 py-16 sm:px-6 lg:grid-cols-4 lg:px-10 lg:py-20">
@@ -50,19 +53,19 @@ export default function Footer() {
           <ul className="mt-4 space-y-3 text-sm text-white/60">
             <li className="flex gap-2"><MapPin className="mt-0.5 size-4 shrink-0" aria-hidden="true" />{siteInfo.address}</li>
             <li className="flex gap-2"><Mail className="mt-0.5 size-4 shrink-0" aria-hidden="true" /><a href={`mailto:${siteInfo.email}`} className="hover:text-accent">{siteInfo.email}</a></li>
-            <li className="flex gap-2"><Mail className="mt-0.5 size-4 shrink-0" aria-hidden="true" /><a href={`mailto:${siteInfo.salesEmail}`} className="hover:text-accent">{siteInfo.salesEmail}</a></li>
+            {siteInfo.salesEmail !== siteInfo.email && (
+              <li className="flex gap-2"><Mail className="mt-0.5 size-4 shrink-0" aria-hidden="true" /><a href={`mailto:${siteInfo.salesEmail}`} className="hover:text-accent">{siteInfo.salesEmail}</a></li>
+            )}
             <li className="flex gap-2"><Phone className="mt-0.5 size-4 shrink-0" aria-hidden="true" /><a href={siteInfo.phoneHref} className="hover:text-accent">{siteInfo.phone}</a></li>
           </ul>
         </div>
       </div>
 
-      <div className="border-t border-white/10">
-        <div className="container-1440 flex flex-col gap-3 px-4 py-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-10">
-          <p>© {siteInfo.year} {siteInfo.legalName}</p>
-          <div className="flex gap-5">
-            <Link to="/privacy-policy" className="hover:text-accent">Privacy Policy</Link>
-            <Link to="/terms-and-conditions" className="hover:text-accent">Terms and Conditions</Link>
-          </div>
+      <div className="container-1440 flex flex-col gap-3 border-t border-white/10 px-4 py-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-10">
+        <p>© {siteInfo.year} {siteInfo.legalName}</p>
+        <div className="flex gap-4">
+          <Link to="/privacy-policy" className="hover:text-accent">Privacy Policy</Link>
+          <Link to="/terms-and-conditions" className="hover:text-accent">Terms &amp; Conditions</Link>
         </div>
       </div>
     </footer>

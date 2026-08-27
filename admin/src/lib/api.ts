@@ -46,8 +46,48 @@ export type DashboardStats = {
   productsPublished?: number
   blogs: number
   blogsPublished?: number
+  applications?: number
+  projects?: number
   enquiriesNew: number
+  whatsappLeadsNew?: number
   phase: string
+  analytics?: DashboardAnalytics
+}
+
+export type DashboardAnalytics = {
+  enquiriesTotal: number
+  enquiriesLast7: number
+  enquiriesLast30: number
+  enquiriesByStatus: {
+    new: number
+    contacted: number
+    quoted: number
+    closed: number
+    spam: number
+  }
+  enquiriesBySource: { source: string; count: number }[]
+  whatsappTotal: number
+  whatsappLast7: number
+  whatsappLast30: number
+  whatsappBySource: { source: string; count: number }[]
+  topProducts: { product: string; count: number }[]
+  dailyTrend: { date: string; enquiries: number; whatsapp: number }[]
+  recentEnquiries: {
+    id: string
+    name: string
+    product: string
+    projectLocation: string
+    status: string
+    createdAt?: string
+  }[]
+  recentWhatsApp: {
+    id: string
+    referenceId: string
+    source: string
+    product: string
+    status: string
+    createdAt?: string
+  }[]
 }
 
 function apiBase(): string {
@@ -323,3 +363,402 @@ export function emptyBlogInput(): BlogInput {
     sortOrder: 0,
   }
 }
+
+export type EnquiryStatus = "new" | "contacted" | "quoted" | "closed" | "spam"
+
+export type AdminEnquiry = {
+  id: string
+  referenceId: string
+  product: string
+  colour: string
+  thickness: string
+  length: string
+  area: string
+  quantity: string
+  surfaceMaterial: string
+  application: string
+  projectLocation: string
+  projectType: string
+  name: string
+  phone: string
+  email: string
+  company: string
+  deliveryTimeline: string
+  message: string
+  consent: boolean
+  source: string
+  productSlug: string
+  productUrl: string
+  status: EnquiryStatus
+  notes: string
+  emailSent: boolean
+  emailSentAt?: string
+  emailError?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export async function fetchAdminEnquiries(
+  token: string,
+  params?: { status?: string; q?: string }
+): Promise<AdminEnquiry[]> {
+  const search = new URLSearchParams()
+  if (params?.status) search.set("status", params.status)
+  if (params?.q) search.set("q", params.q)
+  const qs = search.toString()
+  const res = await fetch(url(`/api/admin/enquiries${qs ? `?${qs}` : ""}`), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const data = await parseJson<{ success: boolean; enquiries: AdminEnquiry[] }>(res)
+  return data.enquiries
+}
+
+export async function fetchAdminEnquiry(token: string, id: string): Promise<AdminEnquiry> {
+  const res = await fetch(url(`/api/admin/enquiries/${id}`), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const data = await parseJson<{ success: boolean; enquiry: AdminEnquiry }>(res)
+  return data.enquiry
+}
+
+export async function updateAdminEnquiry(
+  token: string,
+  id: string,
+  patch: { status?: EnquiryStatus; notes?: string }
+): Promise<AdminEnquiry> {
+  const res = await fetch(url(`/api/admin/enquiries/${id}`), {
+    method: "PATCH",
+    headers: authHeaders(token),
+    body: JSON.stringify(patch),
+  })
+  const data = await parseJson<{ success: boolean; enquiry: AdminEnquiry }>(res)
+  return data.enquiry
+}
+
+export async function deleteAdminEnquiry(token: string, id: string): Promise<void> {
+  const res = await fetch(url(`/api/admin/enquiries/${id}`), {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  await parseJson(res)
+}
+
+export type WhatsAppLeadStatus = "new" | "contacted" | "closed"
+
+export type AdminWhatsAppLead = {
+  id: string
+  referenceId: string
+  source: string
+  product: string
+  productSlug: string
+  productUrl: string
+  colour: string
+  thickness: string
+  length: string
+  area: string
+  quantity: string
+  surfaceMaterial: string
+  message: string
+  enquiryReferenceId: string
+  pageUrl: string
+  status: WhatsAppLeadStatus
+  notes: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export async function fetchAdminWhatsAppLeads(
+  token: string,
+  params?: { status?: string; source?: string; q?: string }
+): Promise<AdminWhatsAppLead[]> {
+  const search = new URLSearchParams()
+  if (params?.status) search.set("status", params.status)
+  if (params?.source) search.set("source", params.source)
+  if (params?.q) search.set("q", params.q)
+  const qs = search.toString()
+  const res = await fetch(url(`/api/admin/whatsapp-leads${qs ? `?${qs}` : ""}`), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const data = await parseJson<{ success: boolean; leads: AdminWhatsAppLead[] }>(res)
+  return data.leads
+}
+
+export async function updateAdminWhatsAppLead(
+  token: string,
+  id: string,
+  patch: { status?: WhatsAppLeadStatus; notes?: string }
+): Promise<AdminWhatsAppLead> {
+  const res = await fetch(url(`/api/admin/whatsapp-leads/${id}`), {
+    method: "PATCH",
+    headers: authHeaders(token),
+    body: JSON.stringify(patch),
+  })
+  const data = await parseJson<{ success: boolean; lead: AdminWhatsAppLead }>(res)
+  return data.lead
+}
+
+export type ApplicationStatus = "draft" | "published"
+
+export type AdminApplication = {
+  id: string
+  slug: string
+  name: string
+  shortDescription: string
+  heroDescription: string
+  image: string
+  recommendedProductSlugs: string[]
+  keyRequirements: string[]
+  relatedProjectSlugs: string[]
+  metaTitle: string
+  metaDescription: string
+  status: ApplicationStatus
+  sortOrder: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+export type ApplicationInput = Omit<AdminApplication, "id" | "createdAt" | "updatedAt">
+
+export async function fetchAdminApplications(
+  token: string,
+  params?: { status?: string; q?: string }
+): Promise<AdminApplication[]> {
+  const search = new URLSearchParams()
+  if (params?.status) search.set("status", params.status)
+  if (params?.q) search.set("q", params.q)
+  const qs = search.toString()
+  const res = await fetch(url(`/api/admin/applications${qs ? `?${qs}` : ""}`), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const data = await parseJson<{ success: boolean; applications: AdminApplication[] }>(res)
+  return data.applications
+}
+
+export async function fetchAdminApplication(token: string, id: string): Promise<AdminApplication> {
+  const res = await fetch(url(`/api/admin/applications/${id}`), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const data = await parseJson<{ success: boolean; application: AdminApplication }>(res)
+  return data.application
+}
+
+export async function createApplication(token: string, input: ApplicationInput): Promise<AdminApplication> {
+  const res = await fetch(url("/api/admin/applications"), {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(input),
+  })
+  const data = await parseJson<{ success: boolean; application: AdminApplication }>(res)
+  return data.application
+}
+
+export async function updateApplication(
+  token: string,
+  id: string,
+  input: ApplicationInput
+): Promise<AdminApplication> {
+  const res = await fetch(url(`/api/admin/applications/${id}`), {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify(input),
+  })
+  const data = await parseJson<{ success: boolean; application: AdminApplication }>(res)
+  return data.application
+}
+
+export async function deleteApplication(token: string, id: string): Promise<void> {
+  const res = await fetch(url(`/api/admin/applications/${id}`), {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  await parseJson(res)
+}
+
+export async function uploadImage(token: string, file: File): Promise<string> {
+  const body = new FormData()
+  body.append("file", file)
+  const res = await fetch(url("/api/admin/upload/image"), {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body,
+  })
+  const data = await parseJson<{ success: boolean; url: string }>(res)
+  return data.url
+}
+
+export type ProjectStatus = "draft" | "published"
+
+export type AdminProject = {
+  id: string
+  slug: string
+  title: string
+  city: string
+  state: string
+  product: string
+  application: string
+  applicationFilter: string
+  area: string
+  image: string
+  summary: string
+  challenge: string
+  solution: string
+  productsUsed: string[]
+  metrics: { label: string; value: string }[]
+  gallery: { url: string; alt: string }[]
+  quote?: { text: string; author: string }
+  metaTitle: string
+  metaDescription: string
+  status: ProjectStatus
+  sortOrder: number
+  createdAt?: string
+  updatedAt?: string
+}
+
+export type ProjectInput = Omit<AdminProject, "id" | "createdAt" | "updatedAt">
+
+export async function fetchAdminProjects(
+  token: string,
+  params?: { status?: string; q?: string }
+): Promise<AdminProject[]> {
+  const search = new URLSearchParams()
+  if (params?.status) search.set("status", params.status)
+  if (params?.q) search.set("q", params.q)
+  const qs = search.toString()
+  const res = await fetch(url(`/api/admin/projects${qs ? `?${qs}` : ""}`), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const data = await parseJson<{ success: boolean; projects: AdminProject[] }>(res)
+  return data.projects
+}
+
+export async function fetchAdminProject(token: string, id: string): Promise<AdminProject> {
+  const res = await fetch(url(`/api/admin/projects/${id}`), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const data = await parseJson<{ success: boolean; project: AdminProject }>(res)
+  return data.project
+}
+
+export async function createProject(token: string, input: ProjectInput): Promise<AdminProject> {
+  const res = await fetch(url("/api/admin/projects"), {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(input),
+  })
+  const data = await parseJson<{ success: boolean; project: AdminProject }>(res)
+  return data.project
+}
+
+export async function updateProject(
+  token: string,
+  id: string,
+  input: ProjectInput
+): Promise<AdminProject> {
+  const res = await fetch(url(`/api/admin/projects/${id}`), {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify(input),
+  })
+  const data = await parseJson<{ success: boolean; project: AdminProject }>(res)
+  return data.project
+}
+
+export async function deleteProject(token: string, id: string): Promise<void> {
+  const res = await fetch(url(`/api/admin/projects/${id}`), {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  await parseJson(res)
+}
+
+export function emptyProjectInput(): ProjectInput {
+  return {
+    slug: "",
+    title: "",
+    city: "",
+    state: "",
+    product: "",
+    application: "",
+    applicationFilter: "Warehouses",
+    area: "",
+    image: "",
+    summary: "",
+    challenge: "",
+    solution: "",
+    productsUsed: [],
+    metrics: [],
+    gallery: [],
+    quote: undefined,
+    metaTitle: "",
+    metaDescription: "",
+    status: "draft",
+    sortOrder: 0,
+  }
+}
+
+export function emptyApplicationInput(): ApplicationInput {
+  return {
+    slug: "",
+    name: "",
+    shortDescription: "",
+    heroDescription: "",
+    image: "",
+    recommendedProductSlugs: [],
+    keyRequirements: [""],
+    relatedProjectSlugs: [],
+    metaTitle: "",
+    metaDescription: "",
+    status: "draft",
+    sortOrder: 0,
+  }
+}
+
+export type SiteSettings = {
+  id?: string
+  phone: string
+  phoneDigits: string
+  phoneHref: string
+  whatsappPhone: string
+  whatsappDigits: string
+  whatsappHref: string
+  email: string
+  salesEmail: string
+  address: string
+  addressShort: string
+  mapEmbedUrl: string
+  updatedAt?: string
+}
+
+export type SiteSettingsInput = {
+  phone: string
+  phoneDigits: string
+  whatsappPhone: string
+  whatsappDigits: string
+  email: string
+  salesEmail: string
+  address: string
+  addressShort: string
+  mapEmbedUrl: string
+}
+
+export async function fetchAdminSettings(token: string): Promise<SiteSettings> {
+  const res = await fetch(url("/api/admin/settings"), {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const data = await parseJson<{ success: boolean; settings: SiteSettings }>(res)
+  return data.settings
+}
+
+export async function updateAdminSettings(
+  token: string,
+  input: SiteSettingsInput
+): Promise<SiteSettings> {
+  const res = await fetch(url("/api/admin/settings"), {
+    method: "PUT",
+    headers: authHeaders(token),
+    body: JSON.stringify(input),
+  })
+  const data = await parseJson<{ success: boolean; settings: SiteSettings }>(res)
+  return data.settings
+}
+

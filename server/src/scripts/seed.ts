@@ -5,6 +5,12 @@ import { Product } from "../models/Product.js"
 import { Blog } from "../models/Blog.js"
 import { products as seedProducts } from "../data/products.seed.js"
 import { blogs as seedBlogs } from "../data/blogs.seed.js"
+import { applications as seedApplications } from "../data/applications.seed.js"
+import { projects as seedProjects } from "../data/projects.seed.js"
+import { Application } from "../models/Application.js"
+import { Project } from "../models/Project.js"
+import { DEFAULT_SITE_SETTINGS } from "../services/siteSettings.js"
+import { SiteSettings } from "../models/SiteSettings.js"
 
 const monthMap: Record<string, number> = {
   January: 0,
@@ -80,6 +86,45 @@ async function seed() {
     )
   }
   console.log(`Blogs seeded: ${seedBlogs.length}`)
+
+  for (let i = 0; i < seedApplications.length; i++) {
+    const a = seedApplications[i]
+    await Application.findOneAndUpdate(
+      { slug: a.slug },
+      {
+        ...a,
+        status: "published",
+        sortOrder: i,
+        metaTitle: a.name,
+        metaDescription: a.shortDescription,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    )
+  }
+  console.log(`Applications seeded: ${seedApplications.length}`)
+
+  for (let i = 0; i < seedProjects.length; i++) {
+    const p = seedProjects[i]
+    await Project.findOneAndUpdate(
+      { slug: p.slug },
+      {
+        ...p,
+        status: "published",
+        sortOrder: i,
+        metaTitle: p.title,
+        metaDescription: p.summary,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    )
+  }
+  console.log(`Projects seeded: ${seedProjects.length}`)
+
+  await SiteSettings.findOneAndUpdate(
+    { key: "default" },
+    { $setOnInsert: DEFAULT_SITE_SETTINGS },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  )
+  console.log("Site settings ensured")
 
   console.log("Seed complete.")
   console.log(`Login with: ${email} / ${env.ADMIN_PASSWORD}`)

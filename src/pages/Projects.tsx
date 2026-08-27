@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import ProjectCard from "@/components/shared/ProjectCard"
 import FadeUp from "@/components/shared/FadeUp"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
-import { projects } from "@/data/projects"
+import { fetchProjects } from "@/lib/projectsApi"
+import type { Project } from "@/types"
 
 const filters = ["All", "Warehouses", "Cold Storage", "Food Processing", "Pharma", "Industrial Facilities"]
 
@@ -13,10 +14,21 @@ export default function Projects() {
     "Explore MountRoof's completed industrial construction projects across warehouses, cold storage, food processing and pharma facilities in India."
   )
   const [filter, setFilter] = useState("All")
+  const [projects, setProjects] = useState<Project[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    fetchProjects().then((list) => {
+      if (!cancelled) setProjects(list)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const filtered = useMemo(
     () => projects.filter((p) => filter === "All" || p.applicationFilter === filter),
-    [filter]
+    [projects, filter]
   )
 
   return (

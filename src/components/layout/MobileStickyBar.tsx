@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom"
 import { Phone, MessageCircle, FileText } from "lucide-react"
-import { siteInfo } from "@/data/site"
+import { useSiteInfo } from "@/context/SiteInfoContext"
 
 export default function MobileStickyBar() {
+  const siteInfo = useSiteInfo()
+
   return (
     <nav
       aria-label="Quick actions"

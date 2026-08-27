@@ -21,6 +21,9 @@ dist-ssr
 # Server build
 server/dist
 
+# Local image uploads
+server/uploads
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

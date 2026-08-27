@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, type MouseEvent } from "react"
 import type { Product } from "@/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,9 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ArrowRight, Check, ArrowLeft } from "lucide-react"
+import { ArrowRight, Check, ArrowLeft, MessageCircle } from "lucide-react"
 import EnquiryDialog from "@/components/shared/EnquiryDialog"
 import EnquiryForm, { type EnquiryPrefill } from "@/components/shared/EnquiryForm"
+import { buildWhatsAppUrl, configurationWhatsAppMessage, logAndBuildWhatsAppUrl } from "@/lib/whatsapp"
 
 export default function Configurator({ product }: { product: Product }) {
   const [step, setStep] = useState<1 | 2>(1)
@@ -48,6 +49,44 @@ export default function Configurator({ product }: { product: Product }) {
     area: estimatedArea.sqft > 0 ? Math.round(estimatedArea.sqft).toString() : "",
     quantity,
     surfaceMaterial,
+  }
+
+  const productUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/products/${product.slug}`
+      : `https://www.mountroof.com/products/${product.slug}`
+
+  const bookConfigMessage = configurationWhatsAppMessage({
+    productName: product.name,
+    productUrl,
+    colour,
+    thickness,
+    length,
+    quantity,
+    area: prefill.area,
+    surfaceMaterial,
+  })
+  const bookConfigHref = buildWhatsAppUrl(bookConfigMessage)
+
+  async function openConfigWhatsApp(e: MouseEvent<HTMLAnchorElement>) {
+    e.preventDefault()
+    const href = await logAndBuildWhatsAppUrl(
+      {
+        source: "configurator",
+        product: product.name,
+        productSlug: product.slug,
+        productUrl,
+        colour,
+        thickness,
+        length,
+        quantity,
+        area: prefill.area,
+        surfaceMaterial,
+        message: bookConfigMessage,
+      },
+      bookConfigMessage
+    )
+    window.open(href, "_blank", "noopener,noreferrer")
   }
 
   return (
@@ -198,6 +237,12 @@ export default function Configurator({ product }: { product: Product }) {
           </dl>
           <Button onClick={() => setDialogOpen(true)} className="mt-5 w-full bg-accent hover:bg-[#D94716]">
             Request a Quote <ArrowRight className="ml-2 size-4" aria-hidden="true" />
+          </Button>
+          <Button asChild className="mt-3 w-full bg-[#25D366] text-white hover:bg-[#1ebe57]">
+            <a href={bookConfigHref} target="_blank" rel="noreferrer" onClick={(e) => void openConfigWhatsApp(e)}>
+              <MessageCircle className="mr-2 size-4" aria-hidden="true" />
+              Book This Config on WhatsApp
+            </a>
           </Button>
         </div>
       </div>

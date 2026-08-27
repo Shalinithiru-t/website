@@ -17,6 +17,7 @@ export interface Enquiry {
   deliveryTimeline: string
   message: string
   consent: boolean
+  projectType?: string
 }
 
 export interface ProductBenefit {

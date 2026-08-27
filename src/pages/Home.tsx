@@ -12,11 +12,14 @@ import EnquiryForm from "@/components/shared/EnquiryForm"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
 import { fetchProducts } from "@/lib/productsApi"
 import { fetchResources } from "@/lib/blogsApi"
+import { fetchApplications } from "@/lib/applicationsApi"
 import type { Product } from "@/types"
 import type { Resource } from "@/types"
-import { applications } from "@/data/applications"
-import { projects } from "@/data/projects"
-import { stats, siteInfo } from "@/data/site"
+import type { Application } from "@/types"
+import type { Project } from "@/types"
+import { fetchProjects } from "@/lib/projectsApi"
+import { stats } from "@/data/site"
+import { useSiteInfo } from "@/context/SiteInfoContext"
 
 const benefitIcons = { ShieldCheck, Truck, Award, Wrench }
 
@@ -32,18 +35,25 @@ export default function Home() {
     "PUF Panels, Roofing & PEB Systems",
     "India's insulated building solutions partner. MountRoof supplies PUF sandwich panels, roofing, wall systems, cold-room panels and PEB structures nationwide."
   )
+  const siteInfo = useSiteInfo()
 
   const [products, setProducts] = useState<Product[]>([])
   const [resources, setResources] = useState<Resource[]>([])
+  const [applications, setApplications] = useState<Application[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([fetchProducts(), fetchResources()]).then(([productList, resourceList]) => {
-      if (!cancelled) {
-        setProducts(productList)
-        setResources(resourceList)
+    Promise.all([fetchProducts(), fetchResources(), fetchApplications(), fetchProjects()]).then(
+      ([productList, resourceList, applicationList, projectList]) => {
+        if (!cancelled) {
+          setProducts(productList)
+          setResources(resourceList)
+          setApplications(applicationList)
+          setProjects(projectList)
+        }
       }
-    })
+    )
     return () => {
       cancelled = true
     }
@@ -142,12 +152,26 @@ export default function Home() {
           <SectionHeading eyebrow="Product Range" title="Explore Our Product Range" description="Five engineered panel systems covering roofing, wall envelopes, cold storage and architectural facades." />
         </FadeUp>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((p, i) => (
+          {products.slice(0, 6).map((p, i) => (
             <FadeUp key={p.slug} delay={i * 80}>
               <ProductCard product={p} />
             </FadeUp>
           ))}
         </div>
+        {products.length > 6 && (
+          <div className="mt-10 text-center">
+            <Button asChild variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white">
+              <Link to="/products">Read More Products</Link>
+            </Button>
+          </div>
+        )}
+        {products.length > 0 && products.length <= 6 && (
+          <div className="mt-10 text-center">
+            <Button asChild variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white">
+              <Link to="/products">View All Products</Link>
+            </Button>
+          </div>
+        )}
       </section>
 
       {/* D. Why MountRoof */}
@@ -191,12 +215,19 @@ export default function Home() {
           <SectionHeading eyebrow="Applications" title="Solutions for Demanding Environments" description="From cold chains to cleanrooms, MountRoof panels are specified for environments where performance is non-negotiable." />
         </FadeUp>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {applications.map((a, i) => (
+          {applications.slice(0, 6).map((a, i) => (
             <FadeUp key={a.slug} delay={i * 80}>
               <ApplicationCard application={a} />
             </FadeUp>
           ))}
         </div>
+        {applications.length > 0 && (
+          <div className="mt-10 text-center">
+            <Button asChild variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white">
+              <Link to="/applications">{applications.length > 6 ? "Read More Applications" : "View All Applications"}</Link>
+            </Button>
+          </div>
+        )}
       </section>
 
       {/* F. Featured projects */}
@@ -246,7 +277,7 @@ export default function Home() {
           <SectionHeading eyebrow="Insights" title="Technical Resources & Guides" description="Practical guidance for specifying and planning insulated building envelopes." />
         </FadeUp>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {resources.slice(0, 3).map((r, i) => (
+          {resources.slice(0, 6).map((r, i) => (
             <FadeUp key={r.slug} delay={i * 80}>
               <Link to={`/resources/${r.slug}`} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border-grey bg-white transition hover:shadow-lg">
                 <div className="aspect-[16/10] overflow-hidden">
@@ -262,6 +293,13 @@ export default function Home() {
             </FadeUp>
           ))}
         </div>
+        {resources.length > 0 && (
+          <div className="mt-10 text-center">
+            <Button asChild variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white">
+              <Link to="/resources">{resources.length > 6 ? "Read More Guides" : "View All Resources"}</Link>
+            </Button>
+          </div>
+        )}
       </section>
 
       {/* I. Final lead section */}

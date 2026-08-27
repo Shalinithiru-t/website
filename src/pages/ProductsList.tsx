@@ -21,6 +21,7 @@ export default function ProductsList() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("All")
   const [query, setQuery] = useState("")
+  const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -35,6 +36,10 @@ export default function ProductsList() {
     }
   }, [])
 
+  useEffect(() => {
+    setShowAll(false)
+  }, [filter, query])
+
   const filtered = useMemo(() => {
     return products.filter((p) => {
       const matchesFilter = filter === "All" || p.categoryFilter === filter
@@ -45,6 +50,8 @@ export default function ProductsList() {
       return matchesFilter && matchesQuery
     })
   }, [products, filter, query])
+
+  const visible = showAll ? filtered : filtered.slice(0, 6)
 
   return (
     <div>
@@ -91,7 +98,7 @@ export default function ProductsList() {
 
         {!loading && (
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((p, i) => (
+            {visible.map((p, i) => (
               <FadeUp key={p.slug} delay={i * 60}>
                 <ProductCard product={p} />
               </FadeUp>
@@ -100,6 +107,18 @@ export default function ProductsList() {
         )}
         {!loading && filtered.length === 0 && (
           <p className="mt-10 text-center text-steel">No products match your search. Try a different keyword or filter.</p>
+        )}
+        {!loading && filtered.length > 6 && !showAll && (
+          <div className="mt-10 text-center">
+            <Button
+              type="button"
+              variant="outline"
+              className="border-navy text-navy hover:bg-navy hover:text-white"
+              onClick={() => setShowAll(true)}
+            >
+              Read More
+            </Button>
+          </div>
         )}
 
         <div className="mt-16 flex flex-col items-center gap-4 rounded-2xl border border-border-grey bg-surface p-8 text-center">

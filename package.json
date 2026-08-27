@@ -13,7 +13,8 @@
     "seed": "npm run seed --prefix server",
     "test:auth": "npm run test:auth --prefix server",
     "test:products": "npm run test:products --prefix server",
-    "test:blogs": "npm run test:blogs --prefix server"
+    "test:blogs": "npm run test:blogs --prefix server",
+    "test:enquiries": "npm run test:enquiries --prefix server"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

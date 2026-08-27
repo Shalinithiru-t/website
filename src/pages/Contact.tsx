@@ -3,13 +3,14 @@ import Breadcrumb from "@/components/shared/Breadcrumb"
 import FadeUp from "@/components/shared/FadeUp"
 import EnquiryForm from "@/components/shared/EnquiryForm"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
-import { siteInfo } from "@/data/site"
+import { useSiteInfo } from "@/context/SiteInfoContext"
 
 export default function Contact() {
   useDocumentMeta(
     "Contact Us",
     "Get in touch with MountRoof's technical sales team for PUF panel, roofing and PEB structure enquiries across India."
   )
+  const siteInfo = useSiteInfo()
 
   return (
     <div>
@@ -34,7 +35,7 @@ export default function Contact() {
             <a href={siteInfo.whatsappHref} target="_blank" rel="noreferrer" className="rounded-xl border border-border-grey bg-white p-5 hover:border-navy">
               <MessageCircle className="size-6 text-success" aria-hidden="true" />
               <p className="mt-3 font-semibold text-charcoal">WhatsApp</p>
-              <p className="mt-1 text-sm text-steel">Chat with our team</p>
+              <p className="mt-1 text-sm text-steel">{siteInfo.whatsappPhone}</p>
             </a>
             <a href={`mailto:${siteInfo.email}`} className="rounded-xl border border-border-grey bg-white p-5 hover:border-navy">
               <Mail className="size-6 text-accent" aria-hidden="true" />
@@ -49,14 +50,20 @@ export default function Contact() {
           </FadeUp>
 
           <FadeUp delay={100} className="mt-8 rounded-xl border border-border-grey bg-white p-6">
-            <h2 className="flex items-center gap-2 font-semibold text-charcoal"><MapPin className="size-5 text-accent" aria-hidden="true" />Office &amp; Factory Address</h2>
+            <h2 className="flex items-center gap-2 font-semibold text-charcoal">
+              <MapPin className="size-5 text-accent" aria-hidden="true" />
+              Office &amp; Factory Address
+            </h2>
             <p className="mt-2 text-sm text-steel">{siteInfo.address}</p>
-            <div
-              role="img"
-              aria-label="Map placeholder showing MountRoof office location in Bengaluru, Karnataka"
-              className="mt-4 flex h-48 items-center justify-center rounded-lg bg-surface text-sm text-steel"
-            >
-              Map view available on request
+            <div className="mt-4 overflow-hidden rounded-lg border border-border-grey">
+              <iframe
+                title="MountRoof office location — Peenya, Bengaluru"
+                src={siteInfo.mapEmbedUrl}
+                className="h-56 w-full border-0 sm:h-64"
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
             </div>
           </FadeUp>
 

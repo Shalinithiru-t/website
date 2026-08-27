@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
+import { Button } from "@/components/ui/button"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import FadeUp from "@/components/shared/FadeUp"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
@@ -14,6 +15,7 @@ export default function Resources() {
 
   const [resources, setResources] = useState<Resource[]>([])
   const [loading, setLoading] = useState(true)
+  const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -27,6 +29,8 @@ export default function Resources() {
       cancelled = true
     }
   }, [])
+
+  const visible = showAll ? resources : resources.slice(0, 6)
 
   return (
     <div>
@@ -44,7 +48,7 @@ export default function Resources() {
         {loading && <p className="text-center text-steel">Loading resources…</p>}
         {!loading && (
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {resources.map((r, i) => (
+            {visible.map((r, i) => (
               <FadeUp key={r.slug} delay={i * 70}>
                 <Link
                   to={`/resources/${r.slug}`}
@@ -75,6 +79,18 @@ export default function Resources() {
         )}
         {!loading && resources.length === 0 && (
           <p className="text-center text-steel">No published resources yet.</p>
+        )}
+        {!loading && resources.length > 6 && !showAll && (
+          <div className="mt-10 text-center">
+            <Button
+              type="button"
+              variant="outline"
+              className="border-navy text-navy hover:bg-navy hover:text-white"
+              onClick={() => setShowAll(true)}
+            >
+              Read More
+            </Button>
+          </div>
         )}
       </div>
     </div>

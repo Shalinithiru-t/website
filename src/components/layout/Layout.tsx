@@ -15,7 +15,11 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
-      <main id="main-content" className="flex-1 pb-16 lg:pb-0">
+      {/* Fixed header overlays content — pad non-home pages; home hero goes edge-to-edge under header */}
+      <main
+        id="main-content"
+        className={`flex-1 pb-16 lg:pb-0 ${location.pathname === "/" ? "" : "pt-[72px]"}`}
+      >
         {children}
       </main>
       <Footer />

@@ -1,19 +1,39 @@
+import { useEffect, useState } from "react"
 import { useParams, Link, Navigate } from "react-router-dom"
 import { MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Breadcrumb from "@/components/shared/Breadcrumb"
 import FadeUp from "@/components/shared/FadeUp"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
-import { getProjectBySlug } from "@/data/projects"
+import { fetchProjectBySlug } from "@/lib/projectsApi"
+import type { Project } from "@/types"
 
 export default function ProjectDetail() {
   const { slug } = useParams()
-  const project = getProjectBySlug(slug || "")
+  const [project, setProject] = useState<Project | null | undefined>(undefined)
+
+  useEffect(() => {
+    if (!slug) {
+      setProject(null)
+      return
+    }
+    let cancelled = false
+    fetchProjectBySlug(slug).then((p) => {
+      if (!cancelled) setProject(p)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [slug])
 
   useDocumentMeta(
-    project ? project.title : "Project Not Found",
-    project ? project.summary : "The requested project could not be found."
+    project ? project.title : "Project",
+    project ? project.summary : "MountRoof project case study."
   )
+
+  if (project === undefined) {
+    return <div className="container-1280 px-4 py-20 text-steel sm:px-6 lg:px-10">Loading project…</div>
+  }
 
   if (!project) return <Navigate to="/projects" replace />
 

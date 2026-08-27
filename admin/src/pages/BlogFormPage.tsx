@@ -9,10 +9,8 @@ import {
   updateBlog,
   type BlogInput,
 } from "@/lib/api"
-
-const fieldClass =
-  "mt-1.5 w-full rounded-lg border border-border-grey px-3 py-2 text-sm outline-none focus:border-navy focus:ring-2 focus:ring-navy/15"
-const labelClass = "block text-sm font-medium text-charcoal"
+import { FieldHint, SectionTitle, fieldClass, labelClass } from "@/components/FormField"
+import { ImageUploadField } from "@/components/ImageUploadField"
 
 export default function BlogFormPage() {
   const { id } = useParams()
@@ -86,11 +84,8 @@ export default function BlogFormPage() {
     setError("")
     try {
       const payload = buildPayload()
-      if (isEdit && id) {
-        await updateBlog(token, id, payload)
-      } else {
-        await createBlog(token, payload)
-      }
+      if (isEdit && id) await updateBlog(token, id, payload)
+      else await createBlog(token, payload)
       navigate("/blogs")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed")
@@ -99,29 +94,31 @@ export default function BlogFormPage() {
     }
   }
 
-  if (loading) {
-    return <div className="p-8 text-steel">Loading blog…</div>
-  }
+  if (loading) return <div className="admin-page text-steel">Loading blog…</div>
 
   return (
-    <div className="p-8">
-      <div className="mb-6">
-        <Link to="/blogs" className="text-sm text-accent hover:underline">
-          ← Back to blogs
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-navy">{isEdit ? "Edit blog" : "Add blog"}</h1>
-      </div>
+    <div className="admin-page">
+      <Link to="/blogs" className="text-sm font-semibold text-accent hover:underline">
+        ← Back to blogs
+      </Link>
+      <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-navy">
+        {isEdit ? "Edit blog" : "Add blog"}
+      </h2>
+      <p className="mt-1 max-w-2xl text-sm text-steel">
+        Blogs appear under Resources on the website. Use the examples in each field as a guide.
+      </p>
 
       {error && (
-        <p role="alert" className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
         </p>
       )}
 
-      <form onSubmit={onSubmit} className="max-w-3xl space-y-6">
-        <section className="rounded-2xl border border-border-grey bg-white p-6">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
+      <form onSubmit={onSubmit} className="admin-form-grid mt-6">
+        <section className="admin-card p-6 sm:p-7">
+          <SectionTitle title="Article details" desc="Title, URL and category for the Resources list." />
+          <div className="grid gap-5 lg:grid-cols-2">
+            <div className="lg:col-span-2">
               <label className={labelClass} htmlFor="title">
                 Title *
               </label>
@@ -130,12 +127,13 @@ export default function BlogFormPage() {
                 className={fieldClass}
                 value={form.title}
                 onChange={(e) => onTitleChange(e.target.value)}
+                placeholder="e.g. How to Choose the Right PUF Panel Thickness"
                 required
               />
             </div>
             <div>
               <label className={labelClass} htmlFor="slug">
-                Slug *
+                Slug * (URL)
               </label>
               <input
                 id="slug"
@@ -145,8 +143,12 @@ export default function BlogFormPage() {
                   setSlugTouched(true)
                   setField("slug", slugify(e.target.value))
                 }}
+                placeholder="e.g. choose-puf-panel-thickness"
                 required
               />
+              <FieldHint>
+                Auto-filled from title. URL: /resources/<strong>your-slug</strong>
+              </FieldHint>
             </div>
             <div>
               <label className={labelClass} htmlFor="category">
@@ -174,8 +176,8 @@ export default function BlogFormPage() {
                 value={form.status}
                 onChange={(e) => setField("status", e.target.value as BlogInput["status"])}
               >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
+                <option value="draft">Draft (hidden)</option>
+                <option value="published">Published (live)</option>
               </select>
             </div>
             <div>
@@ -187,6 +189,7 @@ export default function BlogFormPage() {
                 className={fieldClass}
                 value={form.readTime}
                 onChange={(e) => setField("readTime", e.target.value)}
+                placeholder="e.g. 6 min read"
               />
             </div>
             <div>
@@ -196,10 +199,11 @@ export default function BlogFormPage() {
               <input
                 id="date"
                 className={fieldClass}
-                placeholder="March 2026"
+                placeholder="e.g. March 2026"
                 value={form.date}
                 onChange={(e) => setField("date", e.target.value)}
               />
+              <FieldHint>Shown on the card — month and year is enough.</FieldHint>
             </div>
             <div>
               <label className={labelClass} htmlFor="author">
@@ -210,6 +214,7 @@ export default function BlogFormPage() {
                 className={fieldClass}
                 value={form.author}
                 onChange={(e) => setField("author", e.target.value)}
+                placeholder="e.g. MountRoof Technical Team"
               />
             </div>
             <div>
@@ -222,21 +227,27 @@ export default function BlogFormPage() {
                 className={fieldClass}
                 value={form.sortOrder}
                 onChange={(e) => setField("sortOrder", Number(e.target.value) || 0)}
+                placeholder="0"
               />
+              <FieldHint>Lower numbers appear first.</FieldHint>
             </div>
-            <div className="sm:col-span-2">
-              <label className={labelClass} htmlFor="image">
-                Featured image URL *
-              </label>
-              <input
+            <div className="lg:col-span-2">
+              <ImageUploadField
                 id="image"
-                className={fieldClass}
+                label="Featured image"
                 value={form.image}
-                onChange={(e) => setField("image", e.target.value)}
+                onChange={(url) => setField("image", url)}
                 required
+                hint="Upload a file or paste a URL for the resource card and article header."
               />
             </div>
-            <div className="sm:col-span-2">
+          </div>
+        </section>
+
+        <section className="admin-card p-6 sm:p-7">
+          <SectionTitle title="Content" desc="Excerpt for cards; full article below." />
+          <div className="space-y-5">
+            <div>
               <label className={labelClass} htmlFor="excerpt">
                 Excerpt *
               </label>
@@ -246,12 +257,13 @@ export default function BlogFormPage() {
                 className={fieldClass}
                 value={form.excerpt}
                 onChange={(e) => setField("excerpt", e.target.value)}
+                placeholder="Short summary shown on the Resources listing card (1–2 sentences)."
                 required
               />
             </div>
-            <div className="sm:col-span-2">
+            <div>
               <label className={labelClass} htmlFor="content">
-                Content * (separate paragraphs with a blank line)
+                Article content *
               </label>
               <textarea
                 id="content"
@@ -259,33 +271,41 @@ export default function BlogFormPage() {
                 className={fieldClass}
                 value={contentText}
                 onChange={(e) => setContentText(e.target.value)}
+                placeholder={
+                  "Write paragraph one here.\n\nLeave a blank line between paragraphs.\n\nWrite paragraph two here."
+                }
                 required
               />
+              <FieldHint>Separate paragraphs with a blank line. Each block becomes one paragraph on the site.</FieldHint>
             </div>
-            <div>
-              <label className={labelClass}>Meta title</label>
-              <input className={fieldClass} value={form.metaTitle} onChange={(e) => setField("metaTitle", e.target.value)} />
-            </div>
-            <div>
-              <label className={labelClass}>Meta description</label>
-              <input
-                className={fieldClass}
-                value={form.metaDescription}
-                onChange={(e) => setField("metaDescription", e.target.value)}
-              />
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label className={labelClass}>Meta title (SEO)</label>
+                <input
+                  className={fieldClass}
+                  value={form.metaTitle}
+                  onChange={(e) => setField("metaTitle", e.target.value)}
+                  placeholder="Optional — defaults to article title"
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Meta description (SEO)</label>
+                <input
+                  className={fieldClass}
+                  value={form.metaDescription}
+                  onChange={(e) => setField("metaDescription", e.target.value)}
+                  placeholder="Optional — defaults to excerpt"
+                />
+              </div>
             </div>
           </div>
         </section>
 
         <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#D94716] disabled:opacity-60"
-          >
+          <button type="submit" disabled={saving} className="admin-btn admin-btn-primary">
             {saving ? "Saving…" : isEdit ? "Save changes" : "Create blog"}
           </button>
-          <Link to="/blogs" className="rounded-lg border border-border-grey px-5 py-2.5 text-sm font-medium hover:bg-surface">
+          <Link to="/blogs" className="admin-btn admin-btn-secondary">
             Cancel
           </Link>
         </div>

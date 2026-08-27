@@ -6,39 +6,63 @@ import Breadcrumb from "@/components/shared/Breadcrumb"
 import FadeUp from "@/components/shared/FadeUp"
 import ProjectCard from "@/components/shared/ProjectCard"
 import { useDocumentMeta } from "@/hooks/useDocumentMeta"
-import { getApplicationBySlug } from "@/data/applications"
+import { fetchApplicationBySlug } from "@/lib/applicationsApi"
 import { fetchProducts } from "@/lib/productsApi"
-import type { Product } from "@/types"
-import { projects } from "@/data/projects"
+import { fetchProjects } from "@/lib/projectsApi"
+import type { Application, Product, Project } from "@/types"
 
 export default function ApplicationDetail() {
   const { slug } = useParams()
-  const application = getApplicationBySlug(slug || "")
+  const [application, setApplication] = useState<Application | null>(null)
   const [products, setProducts] = useState<Product[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setNotFound(false)
+    Promise.all([fetchApplicationBySlug(slug || ""), fetchProducts(), fetchProjects()]).then(
+      ([app, productList, projectList]) => {
+        if (cancelled) return
+        if (!app) {
+          setNotFound(true)
+          setApplication(null)
+        } else {
+          setApplication(app)
+          setProducts(productList)
+          setProjects(projectList)
+        }
+        setLoading(false)
+      }
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [slug])
 
   useDocumentMeta(
     application ? application.name : "Application Not Found",
     application ? application.shortDescription : "The requested application could not be found."
   )
 
-  useEffect(() => {
-    let cancelled = false
-    fetchProducts().then((list) => {
-      if (!cancelled) setProducts(list)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  if (loading) {
+    return (
+      <div className="container-1280 px-4 py-24 text-center text-steel sm:px-6 lg:px-10">
+        Loading application…
+      </div>
+    )
+  }
 
-  if (!application) return <Navigate to="/applications" replace />
+  if (notFound || !application) return <Navigate to="/applications" replace />
 
   const recommendedProducts = application.recommendedProductSlugs
     .map((s) => products.find((p) => p.slug === s))
     .filter(Boolean) as Product[]
   const relatedProjects = application.relatedProjectSlugs
     .map((s) => projects.find((p) => p.slug === s))
-    .filter(Boolean) as typeof projects
+    .filter(Boolean) as Project[]
 
   return (
     <div>

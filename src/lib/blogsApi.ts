@@ -1,10 +1,6 @@
 import type { Resource } from "@/types"
 import { resources as fallbackResources, getResourceBySlug as getFallbackBySlug } from "@/data/resources"
-
-function apiBase(): string {
-  const envUrl = import.meta.env.VITE_API_URL as string | undefined
-  return envUrl?.replace(/\/$/, "") || ""
-}
+import { apiBase } from "@/lib/apiBase"
 
 function toResource(raw: Record<string, unknown>): Resource {
   return {

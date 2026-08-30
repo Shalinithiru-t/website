@@ -106,7 +106,11 @@ export default function EnquiryForm({ prefill, productLocked, onSuccess, compact
     }
   }
 
-  const isInvalid = !name.trim() || !phoneRegex.test(phone.trim()) || !projectLocation.trim() || !projectType || !consent
+  const phoneLooksComplete = phone.replace(/\D/g, "").length === 10
+  const phoneInvalid = phoneLooksComplete && !phoneRegex.test(phone.trim())
+  const phoneError =
+    errors.phone ||
+    (phoneInvalid ? "Enter a valid 10-digit Indian mobile number (starts with 6, 7, 8 or 9)." : "")
 
   if (success) {
     const successMessage = enquiryWhatsAppMessage({
@@ -173,8 +177,20 @@ export default function EnquiryForm({ prefill, productLocked, onSuccess, compact
         </div>
         <div>
           <Label htmlFor="ef-phone">Mobile Number *</Label>
-          <Input id="ef-phone" value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="numeric" maxLength={10} className="mt-1.5" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "ef-phone-err" : undefined} />
-          {errors.phone && <p id="ef-phone-err" role="alert" className="mt-1 text-sm text-destructive">{errors.phone}</p>}
+          <Input
+            id="ef-phone"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+            inputMode="numeric"
+            maxLength={10}
+            placeholder="e.g. 9876543210"
+            className="mt-1.5"
+            aria-invalid={!!phoneError}
+            aria-describedby="ef-phone-hint"
+          />
+          <p id="ef-phone-hint" className={`mt-1 text-sm ${phoneError ? "text-destructive" : "text-steel"}`}>
+            {phoneError || "10-digit Indian mobile starting with 6, 7, 8 or 9."}
+          </p>
         </div>
       </div>
 
@@ -268,7 +284,7 @@ export default function EnquiryForm({ prefill, productLocked, onSuccess, compact
         </p>
       )}
 
-      <Button type="submit" disabled={isInvalid || submitting} className="w-full bg-accent hover:bg-[#D94716] disabled:opacity-50">
+      <Button type="submit" disabled={submitting} className="w-full bg-accent hover:bg-[#D94716] disabled:opacity-50">
         {submitting ? (
           <>
             <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" /> Submitting...

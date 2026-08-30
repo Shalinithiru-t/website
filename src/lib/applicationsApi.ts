@@ -1,10 +1,6 @@
 import type { Application } from "@/types"
 import { applications as fallbackApplications, getApplicationBySlug as getFallbackBySlug } from "@/data/applications"
-
-function apiBase(): string {
-  const envUrl = import.meta.env.VITE_API_URL as string | undefined
-  return envUrl?.replace(/\/$/, "") || ""
-}
+import { apiBase } from "@/lib/apiBase"
 
 function toApplication(raw: Record<string, unknown>): Application {
   return {

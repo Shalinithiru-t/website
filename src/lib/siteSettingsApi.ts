@@ -1,4 +1,5 @@
 import { siteInfo as fallbackSiteInfo } from "@/data/site"
+import { apiBase } from "@/lib/apiBase"
 
 export type LiveSiteInfo = {
   phone: string
@@ -16,11 +17,6 @@ export type LiveSiteInfo = {
   brandName: string
   tagline: string
   year: number
-}
-
-function apiBase(): string {
-  const envUrl = import.meta.env.VITE_API_URL as string | undefined
-  return envUrl?.replace(/\/$/, "") || ""
 }
 
 export function defaultLiveSiteInfo(): LiveSiteInfo {

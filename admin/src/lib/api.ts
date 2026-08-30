@@ -256,7 +256,7 @@ export function emptyProductInput(): ProductInput {
     statTiles: [],
     metaTitle: "",
     metaDescription: "",
-    status: "draft",
+    status: "published",
     sortOrder: 0,
   }
 }

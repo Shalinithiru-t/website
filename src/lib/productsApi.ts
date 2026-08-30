@@ -1,10 +1,6 @@
 import type { Product } from "@/types"
 import { products as fallbackProducts, getProductBySlug as getFallbackBySlug } from "@/data/products"
-
-function apiBase(): string {
-  const envUrl = import.meta.env.VITE_API_URL as string | undefined
-  return envUrl?.replace(/\/$/, "") || ""
-}
+import { apiBase } from "@/lib/apiBase"
 
 function toProduct(raw: Record<string, unknown>): Product {
   return {

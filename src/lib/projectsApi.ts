@@ -1,10 +1,6 @@
 import type { Project } from "@/types"
 import { projects as fallbackProjects, getProjectBySlug as getFallbackBySlug } from "@/data/projects"
-
-function apiBase(): string {
-  const envUrl = import.meta.env.VITE_API_URL as string | undefined
-  return envUrl?.replace(/\/$/, "") || ""
-}
+import { apiBase } from "@/lib/apiBase"
 
 function toProject(raw: Record<string, unknown>): Project {
   const quote = raw.quote as { text?: string; author?: string } | undefined | null

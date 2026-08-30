@@ -1,11 +1,7 @@
 import { siteInfo as staticSiteInfo } from "@/data/site"
+import { apiBase } from "@/lib/apiBase"
 
 let runtimeWhatsAppDigits = staticSiteInfo.whatsappDigits
-
-function apiBase(): string {
-  const envUrl = import.meta.env.VITE_API_URL as string | undefined
-  return envUrl?.replace(/\/$/, "") || ""
-}
 
 /** Keep WhatsApp links in sync with live site settings (updated by SiteInfoProvider). */
 export function setWhatsAppPhoneDigits(digits: string) {
@@ -63,10 +59,15 @@ export async function logAndBuildWhatsAppUrl(
 
 export function productWhatsAppMessage(productName: string, productUrl: string): string {
   return [
-    "Hello,",
-    "I am interested in this product.",
-    `Product: ${productName}`,
-    `Product Link: ${productUrl}`,
+    "Hi MountRoof team,",
+    "",
+    "I would like a quote for the following product:",
+    "",
+    `📦 Product: ${productName}`,
+    `🔗 Link: ${productUrl}`,
+    "",
+    "Please share pricing, lead time, and technical guidance for my project.",
+    "Thank you.",
   ].join("\n")
 }
 
@@ -80,19 +81,27 @@ export function configurationWhatsAppMessage(opts: {
   area?: string
   surfaceMaterial?: string
 }): string {
-  const lines = [
-    "Hello,",
-    "I am interested in this product configuration.",
-    `Product: ${opts.productName}`,
-    opts.colour ? `Colour: ${opts.colour}` : "",
-    opts.thickness ? `Thickness: ${opts.thickness}` : "",
-    opts.length ? `Length: ${opts.length} m` : "",
-    opts.quantity ? `Quantity: ${opts.quantity}` : "",
-    opts.area ? `Approx. area: ${opts.area} sq ft` : "",
-    opts.surfaceMaterial ? `Surface: ${opts.surfaceMaterial}` : "",
-    `Product Link: ${opts.productUrl}`,
-  ]
-  return lines.filter(Boolean).join("\n")
+  const details = [
+    opts.colour ? `🎨 Colour: ${opts.colour}` : "",
+    opts.thickness ? `📏 Thickness: ${opts.thickness}` : "",
+    opts.length ? `📐 Length: ${opts.length} m` : "",
+    opts.quantity ? `🔢 Quantity: ${opts.quantity}` : "",
+    opts.area ? `📊 Approx. area: ${opts.area} sq ft` : "",
+    opts.surfaceMaterial ? `🧱 Surface: ${opts.surfaceMaterial}` : "",
+  ].filter(Boolean)
+
+  return [
+    "Hi MountRoof team,",
+    "",
+    "I would like a quote for this panel configuration:",
+    "",
+    `📦 Product: ${opts.productName}`,
+    ...details,
+    `🔗 Link: ${opts.productUrl}`,
+    "",
+    "Please confirm availability, pricing, and delivery timeline.",
+    "Thank you.",
+  ].join("\n")
 }
 
 export function enquiryWhatsAppMessage(opts: {
@@ -102,11 +111,16 @@ export function enquiryWhatsAppMessage(opts: {
   projectLocation?: string
 }): string {
   return [
-    `Hello, I just submitted enquiry ${opts.referenceId} on the MountRoof website.`,
-    `Name: ${opts.name}`,
-    `Product: ${opts.product}`,
-    opts.projectLocation ? `Location: ${opts.projectLocation}` : "",
-    "Please get in touch.",
+    "Hi MountRoof team,",
+    "",
+    `I just submitted enquiry *${opts.referenceId}* on your website.`,
+    "",
+    `👤 Name: ${opts.name}`,
+    `📦 Product: ${opts.product}`,
+    opts.projectLocation ? `📍 Location: ${opts.projectLocation}` : "",
+    "",
+    "Please get in touch to discuss pricing and next steps.",
+    "Thank you.",
   ]
     .filter(Boolean)
     .join("\n")

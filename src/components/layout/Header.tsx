@@ -4,6 +4,7 @@ import { Menu, X, ChevronDown, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { navProducts, navApplications } from "@/data/site"
 import { useSiteInfo } from "@/context/SiteInfoContext"
+import { fetchProducts } from "@/lib/productsApi"
 
 function Dropdown({
   label,
@@ -75,6 +76,18 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [mobileProductsOpen, setMobileProductsOpen] = useState(false)
   const [mobileAppsOpen, setMobileAppsOpen] = useState(false)
+  const [productItems, setProductItems] = useState(navProducts)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchProducts().then((list) => {
+      if (cancelled || !list.length) return
+      setProductItems(list.map((p) => ({ label: p.shortName || p.name, to: `/products/${p.slug}` })))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -129,7 +142,7 @@ export default function Header() {
         </Link>
 
         <nav className="hidden items-center gap-7 lg:flex">
-          <Dropdown label="Products" items={navProducts} path="/products" light={overHero} />
+          <Dropdown label="Products" items={productItems} path="/products" light={overHero} />
           <Dropdown label="Applications" items={navApplications} path="/applications" light={overHero} />
           <NavLink
             to="/projects"
@@ -207,7 +220,7 @@ export default function Header() {
           </button>
           {mobileProductsOpen && (
             <div className="flex flex-col gap-1 py-2 pl-3">
-              {navProducts.map((p) => (
+              {productItems.map((p) => (
                 <Link key={p.to} to={p.to} className="py-2 text-sm text-steel hover:text-accent">
                   {p.label}
                 </Link>

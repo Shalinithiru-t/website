@@ -113,11 +113,12 @@ export default function EnquiryForm({ prefill, productLocked, onSuccess, compact
     (phoneInvalid ? "Enter a valid 10-digit Indian mobile number (starts with 6, 7, 8 or 9)." : "")
 
   if (success) {
+    const submitted = success
     const successMessage = enquiryWhatsAppMessage({
-      referenceId: success.id,
-      product: success.product,
-      name: success.name,
-      projectLocation: success.projectLocation,
+      referenceId: submitted.id,
+      product: submitted.product,
+      name: submitted.name,
+      projectLocation: submitted.projectLocation,
     })
     const successHref = buildWhatsAppUrl(successMessage)
 
@@ -126,8 +127,8 @@ export default function EnquiryForm({ prefill, productLocked, onSuccess, compact
       const href = await logAndBuildWhatsAppUrl(
         {
           source: "enquiry_success",
-          product: success.product,
-          enquiryReferenceId: success.id,
+          product: submitted.product,
+          enquiryReferenceId: submitted.id,
           message: successMessage,
         },
         successMessage

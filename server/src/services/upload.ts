@@ -74,7 +74,7 @@ export async function storeImageBuffer(
           if (err || !uploaded) reject(err || new Error("Cloudinary upload failed"))
           else resolve(uploaded as { secure_url: string; public_id: string })
         }
-      )
+      ) as NodeJS.WritableStream
       stream.end(buffer)
     })
     return {

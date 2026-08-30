@@ -127,15 +127,16 @@ export default function ProductDetail() {
 
   if (notFound || !product) return <Navigate to="/products" replace />
 
-  const relatedProducts = product.relatedProductSlugs
+  const currentProduct = product
+  const relatedProducts = currentProduct.relatedProductSlugs
     .map((s) => allProducts.find((p) => p.slug === s))
     .filter(Boolean) as Product[]
-  const relatedProjects = projects.filter((p) => product.applicationTags.some((tag) => p.application.includes(tag.split(" ")[0]))).slice(0, 3)
+  const relatedProjects = projects.filter((p) => currentProduct.applicationTags.some((tag) => p.application.includes(tag.split(" ")[0]))).slice(0, 3)
   const galleryProjects = relatedProjects.length > 0 ? relatedProjects : projects.slice(0, 3)
-  const relatedApplications = applications.filter((a) => product.applicationTags.includes(a.name)).slice(0, 4)
-  const gallery = product.images.length > 0 ? [...product.images, ...product.images].slice(0, 6) : product.images
-  const productUrl = typeof window !== "undefined" ? window.location.href : `https://www.mountroof.com/products/${product.slug}`
-  const bookNowMessage = productWhatsAppMessage(product.name, productUrl)
+  const relatedApplications = applications.filter((a) => currentProduct.applicationTags.includes(a.name)).slice(0, 4)
+  const gallery = currentProduct.images.length > 0 ? [...currentProduct.images, ...currentProduct.images].slice(0, 6) : currentProduct.images
+  const productUrl = typeof window !== "undefined" ? window.location.href : `https://www.mountroof.com/products/${currentProduct.slug}`
+  const bookNowMessage = productWhatsAppMessage(currentProduct.name, productUrl)
   const bookNowHref = buildWhatsAppUrl(bookNowMessage)
 
   async function openProductWhatsApp(e: MouseEvent<HTMLAnchorElement>) {
@@ -143,8 +144,8 @@ export default function ProductDetail() {
     const href = await logAndBuildWhatsAppUrl(
       {
         source: "product",
-        product: product.name,
-        productSlug: product.slug,
+        product: currentProduct.name,
+        productSlug: currentProduct.slug,
         productUrl,
         message: bookNowMessage,
       },

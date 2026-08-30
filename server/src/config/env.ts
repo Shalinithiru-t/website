@@ -47,6 +47,41 @@ export function isCloudinaryConfigured(): boolean {
   return Boolean(env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET)
 }
 
+function splitOrigins(value: string): string[] {
+  return value
+    .split(",")
+    .map((s) => s.trim().replace(/\/$/, ""))
+    .filter(Boolean)
+}
+
 export function getCorsOrigins(): string[] {
-  return [env.CLIENT_URL, env.ADMIN_URL].filter(Boolean)
+  return [...new Set([...splitOrigins(env.CLIENT_URL), ...splitOrigins(env.ADMIN_URL)])]
+}
+
+/** Exact listed origins, plus Vercel preview URLs for those projects. */
+export function isAllowedCorsOrigin(origin: string | undefined): boolean {
+  if (!origin) return true
+
+  const normalized = origin.replace(/\/$/, "")
+  const allowed = getCorsOrigins()
+  if (allowed.includes(normalized)) return true
+
+  let originHost: string
+  try {
+    originHost = new URL(normalized).hostname
+  } catch {
+    return false
+  }
+
+  for (const url of allowed) {
+    try {
+      const host = new URL(url).hostname
+      if (!host.endsWith(".vercel.app") || !originHost.endsWith(".vercel.app")) continue
+      const project = host.slice(0, -".vercel.app".length)
+      if (originHost === host || originHost.startsWith(`${project}-`)) return true
+    } catch {
+      continue
+    }
+  }
+  return false
 }

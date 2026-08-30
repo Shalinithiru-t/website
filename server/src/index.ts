@@ -2,7 +2,7 @@ import express from "express"
 import cors from "cors"
 import helmet from "helmet"
 import path from "node:path"
-import { env, getCorsOrigins, isCloudinaryConfigured } from "./config/env.js"
+import { env, getCorsOrigins, isAllowedCorsOrigin, isCloudinaryConfigured } from "./config/env.js"
 import { connectDb } from "./config/db.js"
 import { ensureUploadsDir, UPLOADS_DIR } from "./services/upload.js"
 import { authRouter } from "./routes/auth.js"
@@ -29,7 +29,10 @@ async function main() {
   )
   app.use(
     cors({
-      origin: getCorsOrigins(),
+      origin: (origin, callback) => {
+        if (isAllowedCorsOrigin(origin)) callback(null, true)
+        else callback(null, false)
+      },
       credentials: true,
     })
   )
